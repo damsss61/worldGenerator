@@ -69,3 +69,5 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+Planet Generator/Temp/UnityLockfile
+Planet Generator/Temp/ProcessJobs/61768fddca06d2f47c4dab974817f229.bakert
