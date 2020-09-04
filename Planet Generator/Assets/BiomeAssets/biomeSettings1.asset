@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95e7abfaefadfd746b854e798f6c6ea4, type: 3}
+  m_Name: biomeSettings1
+  m_EditorClassIdentifier: 
+  autoUpdate: 0
+  BiomeName: forest
+  heightMapSettings: {fileID: 11400000, guid: 1858249b64b37494a859b6132695929d, type: 2}
