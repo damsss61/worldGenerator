@@ -1,0 +1,10 @@
+Planet Generator/Assets/TextMesh Pro/
+*.meta
+Planet Generator/Assets/Resources.meta
+Planet Generator/Assets/TextMesh Pro.meta
+Planet Generator/Assets/Materials/New Material 1.mat.meta
+Planet Generator/Assets/Resources/metal_blue_mat.mat.meta
+Planet Generator/Assets/Scripts/Chunk.cs.meta
+Planet Generator/Assets/Scripts/PlanetFace.cs.meta
+Planet Generator/Assets/Scripts/Editor/ChunkEditor.cs.meta
+Planet Generator/Assets/Scripts/Editor/PlanetGenEditor.cs.meta
