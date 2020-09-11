@@ -50,8 +50,6 @@ public static class HeightMapGenerator
                     }
                 }
 
-
-
                 if (values[i, j] > maxValue)
                 {
                     maxValue = values[i, j];
@@ -80,4 +78,10 @@ public struct HeightMap
         this.minValue = minValue;
         this.maxValue = maxValue;
     }
+
+    public HeightMap Zero(int mapSize)
+    {
+        return (new HeightMap(new float[mapSize, mapSize], 0, 1));
+    }
+
 }

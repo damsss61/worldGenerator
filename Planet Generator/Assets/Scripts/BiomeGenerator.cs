@@ -7,7 +7,6 @@ public static class BiomeGenerator
 {
     public static BiomeMask GenerateBiomes(int mapSize, List<Biome> biomes, float blend, bool[] maskToUse)
     {
-
         int[,] biomeIndex = new int[mapSize, mapSize];
         List<HeightMap> masks = new List<HeightMap>(9);
 
@@ -71,20 +70,17 @@ public static class BiomeGenerator
         return new BiomeMask(masks, biomeIndex);
     }
 
-
-
-
     public static List<Biome> InitializeBiome(int mapSize, BiomeSettings[] biomesSettings)
     {
         List<Biome> biomes = new List<Biome>(9);
-
+        float dstFromChunkEdgePercent = 0.2f;
         for (int i = -1; i < 2; i++)
         {
             for (int j = -1; j < 2; j++)
             {
-                int centerX = Mathf.RoundToInt(Random.Range((i + 0.2f) * mapSize, (i + 0.8f) * mapSize));
-                int centerY = Mathf.RoundToInt(Random.Range((j + 0.2f) * mapSize, (j + 0.8f) * mapSize));
-                Vector2 biomeCenter = new Vector2(centerX, centerY);
+                int centerX = Mathf.RoundToInt(Random.Range((i + dstFromChunkEdgePercent) * mapSize, (i + 1- dstFromChunkEdgePercent) * mapSize));
+                int centerY = Mathf.RoundToInt(Random.Range((j + dstFromChunkEdgePercent) * mapSize, (j + 1- dstFromChunkEdgePercent) * mapSize));
+                Vector2Int biomeCenter = new Vector2Int(centerX, centerY);
                 Biome biome = new Biome(biomeCenter, biomesSettings[Random.Range(0, biomesSettings.Length)]);
                 biomes.Add(biome);
             }

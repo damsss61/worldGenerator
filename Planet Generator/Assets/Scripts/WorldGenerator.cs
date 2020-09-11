@@ -7,11 +7,9 @@ public class WorldGenerator : MonoBehaviour
     [Range(1, 3)]
     public int chunksPerFaces = 1;
 
-    public Material material;
 
     [SerializeField, HideInInspector]
-    MeshFilter[] meshFilters;
-    TerrainFace[] terrainFaces;
+    PlanetFace[] terrainFaces;
 
     List<Biome> biomes;
     public bool useFalloff;
@@ -23,43 +21,74 @@ public class WorldGenerator : MonoBehaviour
     public HeightMapSettings heightMapSettings;
     public TextureData textureData;
 
+    public bool displayNoiseMap;
+    [Range(1,6)]
+    public int nbFaces;
+    public HeightMap heightMap;
+
     private void Start()
     {
+        DeleteFaces();
         Initialize();
         GenerateMesh();
     }
 
+
+    public void GenerateWorld()
+    {
+        DeleteFaces();
+        Initialize();
+        GenerateMesh();
+    }
+
+
     void Initialize()
     {
+
         bool[] maskToUse = new bool[9] { true, true, true, true, true, true, true, true, true };
         biomes = BiomeGenerator.InitializeBiome(meshSettings.numVertsPerLine, biomesSettings);
         BiomeMask biomeMask = BiomeGenerator.GenerateBiomes(meshSettings.numVertsPerLine, biomes, blend, maskToUse);
-        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
+        heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
 
-        terrainFaces = new TerrainFace[6];
+        terrainFaces = new PlanetFace[nbFaces];
 
         Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
 
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < nbFaces; i++)
         {
             GameObject faceObj = new GameObject("Face");
-            faceObj.transform.parent = transform;
-            terrainFaces[i] = new TerrainFace(faceObj.transform, meshSettings, directions[i], planetRadius,chunksPerFaces, biomesSettings, heightMap, material);
+            faceObj.transform.parent = this.transform;
+            terrainFaces[i]=faceObj.AddComponent<PlanetFace>();
+            terrainFaces[i].InitializeFace(directions[i], heightMap);
         }
     }
 
     void GenerateMesh()
     {
-        foreach (TerrainFace face in terrainFaces)
+       
+        foreach(PlanetFace face in terrainFaces)
         {
-            face.CreateChunks();
+            if (!displayNoiseMap)
+            {
+                face.ConstructAllMeshes();
+            }
+            else
+            {
 
+                face.DisplayHeightMaps();
+            }
+
+            
         }
-        foreach(TerrainFace face in terrainFaces)
-        {
-            //face.ConstructAllMeshes();
+    }
 
-            face.DisplayHeightMaps();
+    void DeleteFaces()
+    {
+        
+        int nbChildren = this.transform.childCount;
+        for (int i = 0; i < nbChildren; i++)
+        {
+            DestroyImmediate(this.transform.GetChild(0).gameObject);
         }
     }
 }

@@ -60,7 +60,7 @@ public class MapPreview : MonoBehaviour
         }
         else if (drawMode == DrawMode.Mesh)
         {
-            DrawMesh(MeshGenerator.GenerateTerrainMesh(heightMap, meshSettings, editorPreviewLOD, Vector3.up, Vector2.zero, 1f, 1, MeshGenerator.TerrainShape.cube));
+            DrawMesh(MeshGenerator.GenerateTerrainMesh(heightMap, meshSettings, editorPreviewLOD, Vector3.up, Vector3.right, Vector3.back, Vector2.zero, 1f, 1, MeshGenerator.TerrainShape.cube));
 
             transform.localScale = Vector3.one * (meshSettings.numVertsPerLine) / 2;
             transform.position = new Vector3(0, -(meshSettings.numVertsPerLine) / 2, 0);

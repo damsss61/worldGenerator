@@ -5,12 +5,8 @@ public static class MeshGenerator
 {
     public enum TerrainShape { cube, sphere}
 
-    public static MeshData GenerateTerrainMesh(HeightMap heightMap, MeshSettings meshSettings, int levelOfDetail, Vector3 localUp, Vector2 offset, float planetRadius, int chunksPerFaces, TerrainShape terrainShape)
+    public static MeshData GenerateTerrainMesh(HeightMap heightMap, MeshSettings meshSettings, int levelOfDetail, Vector3 localUp, Vector3 axisA, Vector3 axisB, Vector2 chunkCenter, float planetRadius, int chunksPerFaces, TerrainShape terrainShape)
     {
-        Vector3 axisA = new Vector3(localUp.y, localUp.z, localUp.x);
-        Vector3 axisB = Vector3.Cross(localUp, axisA);
-
-
 
         int skipIncrement = (levelOfDetail == 0) ? 1 : levelOfDetail * 2;
         int numVertsPerLine = meshSettings.numVertsPerLine;
@@ -56,7 +52,8 @@ public static class MeshGenerator
 
                     int vertexIndex = vertexIndicesMap[x, y];
 
-                    Vector2 percent = new Vector2(x - 1 + offset.x, y - 1 + offset.y) / ((numVertsPerLine - 3) * chunksPerFaces);
+                    Vector2 percent = chunkCenter + new Vector2((float)x - (numVertsPerLine-1f) / 2, (float)y - (numVertsPerLine-1f) / 2) / ((numVertsPerLine - 3f) * chunksPerFaces);
+                    //Vector2 percent = new Vector2(x - 1 + chunkCenter.x, y - 1 + chunkCenter.y) / ((numVertsPerLine - 3) * chunksPerFaces);
 
                     //Vector2 vertexPosition2D = topLeft + new Vector2(percent.x, -percent.y) * meshSettings.meshWorldSize;
                     float height = heightMap.values[x, y];
@@ -83,15 +80,7 @@ public static class MeshGenerator
                     {
                         Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB;
                         meshData.AddVertex(pointOnUnitCube.normalized * planetRadius * (1 + 0.2f*height), percent, vertexIndex);
-                        if (x==1 && y==1)
-                        {
-                            Debug.Log("x==1 " +height);
-                            
-                        }
-                        if (x==numVertsPerLine-1 && y==1)
-                        {
-                            Debug.Log("x==numVert-1 " + height);
-                        }
+                        
                         
                     }
                     //meshData.AddVertex(new Vector3(vertexPosition2D.x, height, vertexPosition2D.y), percent, vertexIndex);
@@ -118,6 +107,26 @@ public static class MeshGenerator
         return meshData;
 
     }
+
+    public static Vector3 ProjectPointSphere(Vector2Int point, Vector2 chunkCenter, int mapSize, Vector3 localUp, Vector3 axisA, Vector3 axisB, float planetRadius, int chunksPerFaces)
+    {
+        
+        Vector2 percent = chunkCenter + new Vector2((float)point.x - (mapSize - 1f) / 2, (float)point.y - (mapSize - 1f) / 2) / ((mapSize - 3f) * chunksPerFaces);
+        Vector3 pointOnUnitCube = localUp + (percent.x - 0.5f) * 2 * axisA + (percent.y - 0.5f) * 2 * axisB;
+        Vector3 projectedPoint = pointOnUnitCube.normalized * planetRadius;
+        return (projectedPoint);
+    }
+
+    public static Vector3 ProjectPointWorld(Vector2Int point, Vector2 chunkCenter, int mapSize, Vector3 localUp, Vector3 axisA, Vector3 axisB, float planetRadius, int chunksPerFaces, HeightMap heightMap)
+    {
+
+        Vector2 percent = chunkCenter + new Vector2((float)point.x - (mapSize - 1f) / 2, (float)point.y - (mapSize - 1f) / 2) / ((mapSize - 3f) * chunksPerFaces);
+        Vector3 pointOnUnitCube = localUp + (percent.x - 0.5f) * 2 * axisA + (percent.y - 0.5f) * 2 * axisB;
+        Vector3 pointOnUnitSphere = pointOnUnitCube.normalized;
+        Vector3 projectedPoint = pointOnUnitSphere * planetRadius * (1 + 0.1f * Mathf.InverseLerp(heightMap.minValue, heightMap.maxValue, heightMap.values[point.x, point.y]));
+        return (projectedPoint);
+    }
+    
 }
 
 public class MeshData
