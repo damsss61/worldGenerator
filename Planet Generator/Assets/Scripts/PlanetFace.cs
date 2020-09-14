@@ -22,6 +22,7 @@ public class PlanetFace : MonoBehaviour
     MeshFilter[,] meshFilters;
     Material material;
     Chunk[,] chuncks;
+    List<PlanetFace> neighbourFaces;
     
 
     public void InitializeFace( Vector3 localUp, HeightMap heightMap)
@@ -58,9 +59,17 @@ public class PlanetFace : MonoBehaviour
             }
         }
 
+        neighbourFaces = new List<PlanetFace>();
         
     }
 
+    public void RegisterNeighbours()
+    {
+        neighbourFaces.Add(parentWorld.terrainFaces.Find((x) => x.localUp == axisA));
+        neighbourFaces.Add(parentWorld.terrainFaces.Find((x) => x.localUp == -axisA));
+        neighbourFaces.Add(parentWorld.terrainFaces.Find((x) => x.localUp == axisB));
+        neighbourFaces.Add(parentWorld.terrainFaces.Find((x) => x.localUp == -axisB));
+    }
     public void CreateChunk(int i, int j)
     {
         Vector2 position = new Vector2(1f / (2f * chunksPerFaces) + i * (1f / (float)chunksPerFaces), 1f / (2f * (float)chunksPerFaces) + j * (1f / (float)chunksPerFaces));

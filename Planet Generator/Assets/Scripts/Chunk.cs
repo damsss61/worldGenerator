@@ -17,6 +17,9 @@ public class Chunk :MonoBehaviour
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
     Texture texture;
+    Vector3 projectedcenter;
+    public float latitude;
+    public float longitude;
 
     public void InitializeChunck(Vector2 chunkCenter)
     {
@@ -24,9 +27,12 @@ public class Chunk :MonoBehaviour
         parentWorld = parentFace.parentWorld;
         Material material = Resources.Load("metal_blue_mat", typeof(Material)) as Material;
 
+        
+
 
         //Temp test
         texture = TextureGenerator.TextureFromHeightMap(parentWorld.heightMap);
+        texture = Resources.Load("sky", typeof(Texture2D)) as Texture2D;
 
 
         meshSettings = parentWorld.meshSettings;
@@ -40,7 +46,11 @@ public class Chunk :MonoBehaviour
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = new Material(Shader.Find("Unlit/Texture"));
-        
+
+        projectedcenter = MeshGenerator.ProjectPointSphere(new Vector2Int((meshSettings.numVertsPerLine - 1) / 2, (meshSettings.numVertsPerLine - 1) / 2), chunkCenter, meshSettings.numVertsPerLine, localUp, axisA, axisB, parentWorld.planetRadius, parentWorld.chunksPerFaces);
+
+        latitude = 180f / Mathf.PI * Mathf.Asin(projectedcenter.y / parentWorld.planetRadius);
+        longitude = 180f / Mathf.PI * Mathf.Acos(projectedcenter.x / parentWorld.planetRadius);
         AttachRandomBiome();
 
     }
@@ -66,6 +76,9 @@ public class Chunk :MonoBehaviour
         if (biome!=null)
         {
             Gizmos.DrawSphere(MeshGenerator.ProjectPointSphere(biome.biomeCenter,chunkCenter,meshSettings.numVertsPerLine,localUp,axisA,axisB,parentWorld.planetRadius,parentWorld.chunksPerFaces), 1f);
+
+            Gizmos.color = new Color(0, 0, 1);
+            Gizmos.DrawSphere(projectedcenter, 1f);
         }
     }
 }

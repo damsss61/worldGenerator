@@ -9,7 +9,7 @@ public class WorldGenerator : MonoBehaviour
 
 
     [SerializeField, HideInInspector]
-    PlanetFace[] terrainFaces;
+    public List<PlanetFace> terrainFaces;
 
     List<Biome> biomes;
     public bool useFalloff;
@@ -25,6 +25,9 @@ public class WorldGenerator : MonoBehaviour
     [Range(1,6)]
     public int nbFaces;
     public HeightMap heightMap;
+
+
+    
 
     private void Start()
     {
@@ -45,12 +48,13 @@ public class WorldGenerator : MonoBehaviour
     void Initialize()
     {
 
+        terrainFaces =  new List<PlanetFace>(6);
         bool[] maskToUse = new bool[9] { true, true, true, true, true, true, true, true, true };
         biomes = BiomeGenerator.InitializeBiome(meshSettings.numVertsPerLine, biomesSettings);
         BiomeMask biomeMask = BiomeGenerator.GenerateBiomes(meshSettings.numVertsPerLine, biomes, blend, maskToUse);
         heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
 
-        terrainFaces = new PlanetFace[nbFaces];
+        
 
         Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
 
@@ -58,9 +62,16 @@ public class WorldGenerator : MonoBehaviour
         {
             GameObject faceObj = new GameObject("Face");
             faceObj.transform.parent = this.transform;
-            terrainFaces[i]=faceObj.AddComponent<PlanetFace>();
+            PlanetFace face = faceObj.AddComponent<PlanetFace>();
+            terrainFaces.Add(face);
             terrainFaces[i].InitializeFace(directions[i], heightMap);
         }
+        for (int i = 0; i < nbFaces; i++)
+        {
+            
+            terrainFaces[i].RegisterNeighbours();
+        }
+
     }
 
     void GenerateMesh()
