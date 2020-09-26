@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public enum MissingCorner { All, TopLeft, TopRight, BottomLeft, BottomRight, None }
+public enum DrawMode { NoiseMap, Mask, Mesh, FalloffMap };
 public class MapPreview : MonoBehaviour
 {
 
@@ -14,10 +16,7 @@ public class MapPreview : MonoBehaviour
     public float displayRadius = 1;
     public bool fixePoint = true;
 
-    public enum DrawMode { NoiseMap, Mask, Mesh, FalloffMap };
-
-    public enum MissingCorner {All, TopLeft, TopRight, BottomLeft, BottomRight, None}
-
+    
     public MissingCorner missingCorner;
     public DrawMode drawMode;
 
@@ -51,7 +50,7 @@ public class MapPreview : MonoBehaviour
             biomes = BiomeGenerator.InitializeBiome(meshSettings.numVertsPerLine, biomesSettings);
         }
         
-        BiomeMask biomeMask = BiomeGenerator.GenerateBiomes(meshSettings.numVertsPerLine,biomes,blend, maskToUse);
+        BiomeMask biomeMask = BiomeGenerator.GenerateBiomesMask(meshSettings.numVertsPerLine,biomes,blend, maskToUse);
         HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
 
         if (drawMode == DrawMode.NoiseMap)

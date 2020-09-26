@@ -21,8 +21,10 @@ public class PlanetFace : MonoBehaviour
 
     MeshFilter[,] meshFilters;
     Material material;
-    Chunk[,] chuncks;
-    List<PlanetFace> neighbourFaces;
+    public Chunk[,] chunks;
+    
+    public List<PlanetFace> neighbourFaces;
+    public bool isInvertedFace;
     
 
     public void InitializeFace( Vector3 localUp, HeightMap heightMap)
@@ -41,10 +43,19 @@ public class PlanetFace : MonoBehaviour
         axisB = Vector3.Cross(localUp, axisA);
         biomes = new Biome[chunksPerFaces * chunksPerFaces];
 
-
-        if (chuncks == null || chuncks.Length == 0)
+        if (localUp.x==-1 || localUp.y == -1 || localUp.z==-1)
         {
-            chuncks = new Chunk[chunksPerFaces, chunksPerFaces];
+            isInvertedFace = true;
+            
+        }
+        else
+        {
+            isInvertedFace = false;
+        }
+
+        if (chunks == null || chunks.Length == 0)
+        {
+            chunks = new Chunk[chunksPerFaces, chunksPerFaces];
             meshFilters = new MeshFilter[chunksPerFaces , chunksPerFaces];
         }
         
@@ -52,10 +63,13 @@ public class PlanetFace : MonoBehaviour
         {
             for (int j = 0; j < chunksPerFaces; j++)
             {
-                if (chuncks[i,j]==null)
+                
+                if (chunks[i, j] == null)
                 {
-                    CreateChunk(i,j);
+                    CreateChunk(i, j);
                 }
+                
+                   
             }
         }
 
@@ -72,18 +86,19 @@ public class PlanetFace : MonoBehaviour
     }
     public void CreateChunk(int i, int j)
     {
-        Vector2 position = new Vector2(1f / (2f * chunksPerFaces) + i * (1f / (float)chunksPerFaces), 1f / (2f * (float)chunksPerFaces) + j * (1f / (float)chunksPerFaces));
+        
         GameObject chunckObj = new GameObject("chunk " + i + " " + j);
         chunckObj.transform.parent = this.transform;
-        chuncks[i,j] = chunckObj.AddComponent<Chunk>();
-        chuncks[i, j].InitializeChunck(position);
+        chunks[i,j] = chunckObj.AddComponent<Chunk>();
+        chunks[i, j].InitializeChunck(new Vector2Int(i,j));
     }
 
     public void ConstructAllMeshes()
     {
-        foreach (Chunk chunk in chuncks)
+        foreach (Chunk chunk in chunks)
         {
             chunk.CreateMesh();
+            chunk.RegisterNeighbours();
         }
         for (int i = 0; i < chunksPerFaces; i++)
         {
@@ -96,6 +111,18 @@ public class PlanetFace : MonoBehaviour
         }
 
     }
+
+    public void ConstructAllBiomeMask()
+    {
+        foreach (Chunk chunk in chunks)
+        {
+            chunk.AddBiomeMask();
+            chunk.AddHeightMap();
+            chunk.DrawNoiseMap();
+          
+        }
+    }
+
     public Mesh ConstructMesh(Vector2 offset)
     {
         Vector3[] vertices = new Vector3[meshSize * meshSize];
@@ -174,7 +201,7 @@ public class PlanetFace : MonoBehaviour
 
         }
         Vector2 biomePos = new Vector2(i * (meshSize-3), j * (meshSize-3));
-        BiomeMask biomeMask = BiomeGenerator.GenerateBiomes(meshSize, suroundingBiomes, blend, maskToUse);
+        BiomeMask biomeMask = BiomeGenerator.GenerateBiomesMask(meshSize, suroundingBiomes, blend, maskToUse);
         HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSize, suroundingBiomes, biomeMask, biomePos, useFalloff, maskToUse);
         // Debug.Log("mask " + maskToUse[0] + maskToUse[1] + maskToUse[2] + maskToUse[3] + maskToUse[4] + maskToUse[5] + maskToUse[6] + maskToUse[7] + maskToUse[8]);
         return heightMap;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
-    [Range(1, 3)]
+    [Range(1, 5)]
     public int chunksPerFaces = 1;
 
 
@@ -25,6 +25,9 @@ public class WorldGenerator : MonoBehaviour
     [Range(1,6)]
     public int nbFaces;
     public HeightMap heightMap;
+    public DrawMode drawMode = DrawMode.Mask;
+    public MeshGenerator.TerrainShape terrainShape = MeshGenerator.TerrainShape.sphere;
+    public float biomeBlend = 3f;
 
 
     
@@ -42,6 +45,7 @@ public class WorldGenerator : MonoBehaviour
         DeleteFaces();
         Initialize();
         GenerateMesh();
+        GenerateBiomeMask();
     }
 
 
@@ -51,12 +55,12 @@ public class WorldGenerator : MonoBehaviour
         terrainFaces =  new List<PlanetFace>(6);
         bool[] maskToUse = new bool[9] { true, true, true, true, true, true, true, true, true };
         biomes = BiomeGenerator.InitializeBiome(meshSettings.numVertsPerLine, biomesSettings);
-        BiomeMask biomeMask = BiomeGenerator.GenerateBiomes(meshSettings.numVertsPerLine, biomes, blend, maskToUse);
+        BiomeMask biomeMask = BiomeGenerator.GenerateBiomesMask(meshSettings.numVertsPerLine, biomes, blend, maskToUse);
         heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
 
         
 
-        Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+        Vector3[] directions = { Vector3.up, Vector3.left, Vector3.forward, Vector3.down,  Vector3.right,  Vector3.back };
 
         for (int i = 0; i < nbFaces; i++)
         {
@@ -72,6 +76,14 @@ public class WorldGenerator : MonoBehaviour
             terrainFaces[i].RegisterNeighbours();
         }
 
+    }
+
+    void GenerateBiomeMask()
+    {
+        foreach (PlanetFace face in terrainFaces)
+        {
+            face.ConstructAllBiomeMask();
+        }
     }
 
     void GenerateMesh()

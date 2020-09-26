@@ -85,7 +85,7 @@ public static class Noise
 
         return noiseMap;
     }
-    public static float GenerateNoisePoint(Vector2Int worldPos, NoiseSettings settings)
+    public static float GenerateNoisePoint(Vector2 worldPos, NoiseSettings settings)
     {
         float noiseValue=0;
 
@@ -120,6 +120,12 @@ public static class Noise
         noiseValue = Mathf.Clamp(normalizedHeight, 0, int.MaxValue)*settings.multiplier;
 
         return noiseValue;
+    }
+
+    public static float ShowCoordinates(Vector2 worldPos)
+    {
+
+        return (worldPos.x/360 +worldPos.y/180f);
     }
 
 }

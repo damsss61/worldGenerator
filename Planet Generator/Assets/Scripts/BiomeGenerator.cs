@@ -5,11 +5,10 @@ using UnityEditor;
 
 public static class BiomeGenerator
 {
-    public static BiomeMask GenerateBiomes(int mapSize, List<Biome> biomes, float blend, bool[] maskToUse)
+    public static BiomeMask GenerateBiomesMask(int mapSize, List<Biome> biomes, float blend, bool[] maskToUse)
     {
-        int[,] biomeIndex = new int[mapSize, mapSize];
         List<HeightMap> masks = new List<HeightMap>(9);
-
+        
         for (int i = 0; i < 9; i++)
         {
             masks.Add(new HeightMap(new float[mapSize, mapSize], 0, 1));
@@ -43,11 +42,9 @@ public static class BiomeGenerator
                                     minVal = val;
                                     influence[k] = val2;
                                 }
-                                
                             }
                         }
                         sum += influence[k];
-                        
                     }
                     else
                     {
@@ -60,14 +57,12 @@ public static class BiomeGenerator
                 {
                     float weight = influence[k] / sum;
                     masks[k].values[x, y] = weight;
-                    
                 }
-
 
             }
         }
-
-        return new BiomeMask(masks, biomeIndex);
+        
+        return new BiomeMask(masks);
     }
 
     public static List<Biome> InitializeBiome(int mapSize, BiomeSettings[] biomesSettings)
@@ -89,18 +84,67 @@ public static class BiomeGenerator
         return biomes;
     }
 
+
+    public static BiomeMask GenerateBiomeMaskFromMesh(Mesh mesh, List<Chunk> neighbourChunks, float blend)
+    {
+        List<HeightMap> masks = new List<HeightMap>(9);
+        int numVerticesPerLine = (int)Mathf.Sqrt(mesh.vertexCount);
+        Vector3[] vertices = mesh.vertices;
+        for (int i = 0; i < 9; i++)
+        {
+            masks.Add(new HeightMap(new float[numVerticesPerLine, numVerticesPerLine], 0, 1));
+        }
+
+        for (int y = 0; y < numVerticesPerLine; y++)
+        {
+            for (int x = 0; x < numVerticesPerLine; x++)
+            {
+                int VertexIncrement = y * numVerticesPerLine + x;
+                Vector3 pos = vertices[VertexIncrement];
+                float sum = 0;
+                float[] influence = new float[9];
+
+                for (int i = 0; i < neighbourChunks.Count; i++)
+                {
+                    float minVal = float.MaxValue;
+                    influence[i] = float.MaxValue;
+
+                    for (int j = 0; j < neighbourChunks.Count; j++)
+                    {
+                        if (i != j)
+                        {
+                            
+                            float val = 1f - Mathf.Clamp01(Vector3.Dot(neighbourChunks[i].biomeProjectedCenter - neighbourChunks[j].biomeProjectedCenter, neighbourChunks[i].biomeProjectedCenter - pos) / Vector3.SqrMagnitude(neighbourChunks[i].biomeProjectedCenter - neighbourChunks[j].biomeProjectedCenter));
+                            float val2 = Mathf.Pow(val, blend) / (Mathf.Pow(val, blend) + Mathf.Pow(1 - val, blend));
+                            if (val < minVal)
+                            {
+                                minVal = val;
+                                influence[i] = val2;
+                            }
+                        }
+                    }
+                    sum += influence[i];
+                }
+                for (int k = 0; k < neighbourChunks.Count; k++)
+                {
+                    float weight = influence[k];
+                    masks[k].values[x, y] = weight/sum;
+                }
+            }
+        }
+
+        return new BiomeMask(masks);
+    }
 }
 
 public struct BiomeMask
 {
 
     public List<HeightMap> mask;
-    public int[,] biomeIndex;
 
 
-    public BiomeMask(List<HeightMap> mask, int[,] biomeIndex)
+    public BiomeMask(List<HeightMap> mask)
     {
-        this.biomeIndex = biomeIndex;
         this.mask = mask;
     }
 }
