@@ -85,11 +85,11 @@ public static class BiomeGenerator
     }
 
 
-    public static BiomeMask GenerateBiomeMaskFromMesh(Mesh mesh, List<Chunk> neighbourChunks, float blend)
+    public static BiomeMask GenerateBiomeMaskFromMesh(Vector3[] vertexPos, List<Chunk> neighbourChunks, float blend)
     {
         List<HeightMap> masks = new List<HeightMap>(9);
-        int numVerticesPerLine = (int)Mathf.Sqrt(mesh.vertexCount);
-        Vector3[] vertices = mesh.vertices;
+        int numVerticesPerLine = (int)Mathf.Sqrt(vertexPos.Length);
+        
         for (int i = 0; i < 9; i++)
         {
             masks.Add(new HeightMap(new float[numVerticesPerLine, numVerticesPerLine], 0, 1));
@@ -100,7 +100,7 @@ public static class BiomeGenerator
             for (int x = 0; x < numVerticesPerLine; x++)
             {
                 int VertexIncrement = y * numVerticesPerLine + x;
-                Vector3 pos = vertices[VertexIncrement];
+                Vector3 pos = vertexPos[VertexIncrement];
                 float sum = 0;
                 float[] influence = new float[9];
 

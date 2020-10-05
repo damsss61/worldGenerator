@@ -12,19 +12,23 @@ public class PlanetGenEditor : Editor
 
         if (DrawDefaultInspector())
         {
-            /*if (worldGen.autoUpdate)
+            if (worldGen.autoUpdate)
             {
-                worldGen.DrawMapInEditor();
-            }*/
+                worldGen.UpdateTerrain();
+            }
         }
 
         if (GUILayout.Button("Generate"))
         {
             worldGen.GenerateWorld();
         }
+
+        if (GUILayout.Button("Update"))
+        {
+            worldGen.UpdateTerrain();
+        }
     }
-
-
+        
 }
    
         

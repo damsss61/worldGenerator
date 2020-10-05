@@ -65,12 +65,10 @@ public static class HeightMapGenerator
     }
 
 
-    public static HeightMap GenerateHeightMapFromMesh(Mesh mesh, List<Chunk> neighbourChunks, bool useFalloff )
+    public static HeightMap GenerateHeightMapFromVertexPos(Vector3[] vertexPos, List<Chunk> neighbourChunks, bool useFalloff )
     {
-        int numVerticesPerLine = (int)Mathf.Sqrt(mesh.vertexCount);
+        int numVerticesPerLine = (int)Mathf.Sqrt(vertexPos.Length);
         float[,] values = new float[numVerticesPerLine, numVerticesPerLine];
-        float minValue = float.MaxValue;
-        float maxValue = float.MinValue;
 
         if (useFalloff)
         {
@@ -84,24 +82,20 @@ public static class HeightMapGenerator
         {
             for (int x = 0; x < numVerticesPerLine; x++)
             {
-                for (int k = 0; k < 1; k++)
-                {
 
-                    values[x, y] += neighbourChunks[k].CalculateNoiseAtPoint(x, y);// neighbourChunks[0].biome.biomeMask.mask[k].values[x, y] * neighbourChunks[k].biome.noiseMap[x, y] * neighbourChunks[k].biome.biomeSettings.heightMapSettings.heightMultiplier; // * neighbourChunks[k].biome.heightCurve.Evaluate(neighbourChunks[k].biome.noiseMap[x, y] - (useFalloff ? falloffMap[x,y] : 0));
 
-                }
-
-                if (values[x, y] > maxValue)
+                //Vector2 sphericalCoordinate = CoordinateHelper.MapToSphericalCoordinate(new Vector2Int(x - 1, y - 1), neighbourChunks[0].chunkCenter, numVerticesPerLine, neighbourChunks[0].localUp, neighbourChunks[0].axisA, neighbourChunks[0].axisB, neighbourChunks[0].parentWorld.chunksPerFaces);
+                Vector2 sphericalCoordinate = CoordinateHelper.CartesianToSphericalCoordinate(vertexPos[y * numVerticesPerLine + x]);
+                Vector2 seemlessCoordinate = new Vector2(Mathf.Abs(sphericalCoordinate.x), Mathf.Abs(sphericalCoordinate.y));
+                for (int k = 0; k < neighbourChunks.Count; k++)
                 {
-                    maxValue = values[x, y];
-                }
-                if (values[x, y] < minValue)
-                {
-                    minValue = values[x, y];
+                    //values[x, y] = Noise.ShowCoordinates(seemlessCoordinate);
+                    values[x, y] += Noise.GenerateNoisePoint(seemlessCoordinate, neighbourChunks[k].biome.biomeSettings.heightMapSettings.noiseSettings) * neighbourChunks[0].biome.biomeMask.mask[k].values[x, y];// neighbourChunks[0].biome.biomeMask.mask[k].values[x, y] * neighbourChunks[k].biome.noiseMap[x, y] * neighbourChunks[k].biome.biomeSettings.heightMapSettings.heightMultiplier; // * neighbourChunks[k].biome.heightCurve.Evaluate(neighbourChunks[k].biome.noiseMap[x, y] - (useFalloff ? falloffMap[x,y] : 0));
                 }
 
             }
         }
+        
         return new HeightMap(values, 0, 1);
     }
 }

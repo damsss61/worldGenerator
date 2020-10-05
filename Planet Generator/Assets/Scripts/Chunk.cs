@@ -8,15 +8,15 @@ public class Chunk :MonoBehaviour
     [Range(0, 8)]
     public int maskIndex = 0;
     Vector2Int coordinate;
-    Vector2 chunkCenter;
+    public Vector2 chunkCenter;
     public Biome biome;
     MeshSettings meshSettings;
     BiomeSettings[] possibleBiomeSettings;
-    Vector3 localUp;
-    Vector3 axisA;
-    Vector3 axisB;
+    public Vector3 localUp;
+    public Vector3 axisA;
+    public Vector3 axisB;
     PlanetFace parentFace;
-    WorldGenerator parentWorld;
+    public WorldGenerator parentWorld;
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
     Texture texture;
@@ -29,21 +29,18 @@ public class Chunk :MonoBehaviour
     bool[] maskToUse;
     public bool showNeighbours;
     HeightMap heightMap;
-    
+    Material material;
+    Vector3[] vertexPos;
+
 
     public void InitializeChunck(Vector2Int coordinate)
     {
         parentFace = GetComponentInParent<PlanetFace>();
         parentWorld = parentFace.parentWorld;
-        Material material = Resources.Load("materialPlanet", typeof(Material)) as Material;
+        material = parentWorld.worldMaterial;
         this.coordinate = coordinate;
         neighbourChunks = new List<Chunk>();
         heightMap = new HeightMap();
-
-
-        //Temp test
-        texture = TextureGenerator.TextureFromHeightMap(parentWorld.heightMap);
-        texture = Resources.Load("sky", typeof(Texture2D)) as Texture2D;
 
 
         meshSettings = parentWorld.meshSettings;
@@ -68,26 +65,12 @@ public class Chunk :MonoBehaviour
 
     }
 
-    public void CreateMesh()
+    public void ComputeSphereVertexPos()
     {
-        HeightMap heightMap = new HeightMap(new float[meshSettings.numVertsPerLine, meshSettings.numVertsPerLine], 0, 1);
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap, meshSettings, 0, localUp, axisA, axisB, chunkCenter, parentWorld.planetRadius, parentWorld.chunksPerFaces, parentWorld.terrainShape);
-        meshFilter.sharedMesh = meshData.CreateMesh();
-        meshRenderer.sharedMaterial.mainTexture = texture;
+        
+        vertexPos = MeshGenerator.ExtendedMeshVertexPosition(meshSettings, localUp, axisA, axisB, chunkCenter, parentWorld.planetRadius, parentWorld.chunksPerFaces, parentWorld.terrainShape);
     }
    
-
-    public float CalculateNoiseAtPoint(int x, int y)
-    {
-        Vector2 sphericalCoordinate = CoordinateHelper.MapToSphericalCoordinate(new Vector2Int(x, y), chunkCenter, meshSettings.numVertsPerLine, localUp, axisA, axisB, parentWorld.chunksPerFaces);
-        Vector2 seemlessCoordinate = new Vector2(Mathf.Abs(sphericalCoordinate.x), Mathf.Abs(sphericalCoordinate.y));
-        
-
-
-        return Noise.GenerateNoisePoint(seemlessCoordinate, biome.biomeSettings.heightMapSettings.noiseSettings);
-        //return Noise.ShowCoordinates(seemlessCoordinate);
-    }
-
 
     public void RegisterNeighbours()
     {
@@ -326,19 +309,34 @@ public class Chunk :MonoBehaviour
     public void AddBiomeMask()
     {
         
-        biome.CreateBiomeMask(meshFilter.sharedMesh, neighbourChunks, parentWorld.biomeBlend);
+        biome.CreateBiomeMask(vertexPos, neighbourChunks, parentWorld.biomeBlend);
     }
 
     public void AddHeightMap()
     {
-        heightMap = HeightMapGenerator.GenerateHeightMapFromMesh(meshFilter.sharedMesh, neighbourChunks, parentWorld.useFalloff);
+        heightMap = HeightMapGenerator.GenerateHeightMapFromVertexPos(vertexPos, neighbourChunks, parentWorld.useFalloff);
+    }
+
+    public void UpdateMesh()
+    {
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap, meshSettings, 0, localUp, axisA, axisB, chunkCenter, parentWorld.planetRadius, parentWorld.chunksPerFaces, parentWorld.terrainShape);
+        meshFilter.sharedMesh = meshData.CreateMesh();
+        meshRenderer.sharedMaterial= material;
+    }
+
+    void CreateSphereMesh()
+    {
+        HeightMap heightMap = new HeightMap(new float[meshSettings.numVertsPerLine, meshSettings.numVertsPerLine], 0, 1);
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap, meshSettings, 0, localUp, axisA, axisB, chunkCenter, parentWorld.planetRadius, parentWorld.chunksPerFaces, parentWorld.terrainShape);
+        meshFilter.sharedMesh = meshData.CreateMesh();
     }
 
     [ContextMenu("Draw noise map")]
-    public void DrawNoiseMap()
+    public void DrawMap()
     {
         if (parentWorld.drawMode == DrawMode.Mask)
         {
+            CreateSphereMesh();
             meshRenderer.sharedMaterial = new Material(Shader.Find("Unlit/Texture"));
             texture = TextureGenerator.TextureFromHeightMap(biome.biomeMask.mask[maskIndex]);
             meshRenderer.sharedMaterial.mainTexture = texture;
@@ -347,9 +345,16 @@ public class Chunk :MonoBehaviour
 
         if (parentWorld.drawMode == DrawMode.NoiseMap)
         {
+            CreateSphereMesh();
             meshRenderer.sharedMaterial = new Material(Shader.Find("Unlit/Texture"));
             texture = TextureGenerator.TextureFromHeightMap(heightMap);
             meshRenderer.sharedMaterial.mainTexture = texture;
+        }
+
+        if (parentWorld.drawMode == DrawMode.Mesh)
+        {
+            UpdateMesh();
+            meshRenderer.sharedMaterial = material;
         }
 
     }

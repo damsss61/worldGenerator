@@ -89,24 +89,19 @@ public static class Noise
     {
         float noiseValue=0;
 
-        System.Random prng = new System.Random(settings.seed);
-        Vector2 octaveOffsets;
-
         float maxPossibleHeight = 0;
         float amplitude = 1;
         float frequency = 1;
 
         for (int i = 0; i < settings.octaves; i++)
         {
-            float offsetX = prng.Next(-100000, 100000) + settings.offset.x;
-            float offsetY = prng.Next(-100000, 100000) - settings.offset.y;
-            octaveOffsets = new Vector2(offsetX, offsetY);
+            Vector2 octaveOffset = settings.octaveOffsets[i];
 
             maxPossibleHeight += amplitude;
             amplitude *= settings.persistance;
 
-            float sampleX = (worldPos.x + octaveOffsets.x) / settings.scale * frequency;
-            float sampleY = (worldPos.y + octaveOffsets.y) / settings.scale * frequency;
+            float sampleX = (worldPos.x + octaveOffset.x) / settings.scale * frequency;
+            float sampleY = (worldPos.y + octaveOffset.y) / settings.scale * frequency;
 
             float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
             noiseValue += perlinValue * amplitude;

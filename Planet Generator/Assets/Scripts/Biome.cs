@@ -30,12 +30,11 @@ public class Biome
     {
         this.biomeSettings = biomeSettings;
         this.biomeCenter = biomeCenter;
-
     }
 
     public void AddBiomeCenter(int mapSize)
     {
-        float dstFromChunkEdgePercent = 0.1f;
+        float dstFromChunkEdgePercent = 0.2f;
         int centerX = Mathf.RoundToInt(Random.Range(dstFromChunkEdgePercent * (mapSize - 3), (1 - dstFromChunkEdgePercent) * (mapSize - 3)));
         int centerY = Mathf.RoundToInt(Random.Range(dstFromChunkEdgePercent * (mapSize - 3), (1 - dstFromChunkEdgePercent) * (mapSize - 3)));
         biomeCenter = new Vector2Int(centerX, centerY);
@@ -43,9 +42,9 @@ public class Biome
         
     }
 
-    public void CreateBiomeMask(Mesh mesh, List<Chunk> neighbourChunks, float blend)
+    public void CreateBiomeMask(Vector3[] vertexPos, List<Chunk> neighbourChunks, float blend)
     {
-        biomeMask = BiomeGenerator.GenerateBiomeMaskFromMesh(mesh, neighbourChunks, blend);
+        biomeMask = BiomeGenerator.GenerateBiomeMaskFromMesh(vertexPos, neighbourChunks, blend);
 
     }
 

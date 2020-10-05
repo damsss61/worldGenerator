@@ -11,32 +11,34 @@ public class WorldGenerator : MonoBehaviour
     [SerializeField, HideInInspector]
     public List<PlanetFace> terrainFaces;
 
-    List<Biome> biomes;
+
     public bool useFalloff;
     public BiomeSettings[] biomesSettings;
-    public float blend;
-    public float planetRadius=10f;
+
+    public float planetRadius = 10f;
 
     public MeshSettings meshSettings;
-    public HeightMapSettings heightMapSettings;
     public TextureData textureData;
 
-    public bool displayNoiseMap;
-    [Range(1,6)]
+    [Range(1, 6)]
     public int nbFaces;
     public HeightMap heightMap;
     public DrawMode drawMode = DrawMode.Mask;
     public MeshGenerator.TerrainShape terrainShape = MeshGenerator.TerrainShape.sphere;
     public float biomeBlend = 3f;
 
+    public Material worldMaterial;
 
-    
+    public bool autoUpdate;
+
+
+
 
     private void Start()
     {
-        DeleteFaces();
+       /* DeleteFaces();
         Initialize();
-        GenerateMesh();
+        ComputeAllSphereVertexPos();*/
     }
 
 
@@ -44,23 +46,26 @@ public class WorldGenerator : MonoBehaviour
     {
         DeleteFaces();
         Initialize();
-        GenerateMesh();
+        ComputeAllSphereVertexPos();
+        RegisterChunksNeighbours();
         GenerateBiomeMask();
+        GenerateHeightMap();
+        DrawWorld();
     }
 
+    public void UpdateTerrain()
+    {
+        GenerateHeightMap();
+        DrawWorld();
+    }
 
     void Initialize()
     {
 
-        terrainFaces =  new List<PlanetFace>(6);
-        bool[] maskToUse = new bool[9] { true, true, true, true, true, true, true, true, true };
-        biomes = BiomeGenerator.InitializeBiome(meshSettings.numVertsPerLine, biomesSettings);
-        BiomeMask biomeMask = BiomeGenerator.GenerateBiomesMask(meshSettings.numVertsPerLine, biomes, blend, maskToUse);
-        heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, biomes, biomeMask, Vector2.zero, useFalloff, maskToUse);
+        terrainFaces = new List<PlanetFace>(6);
 
-        
 
-        Vector3[] directions = { Vector3.up, Vector3.left, Vector3.forward, Vector3.down,  Vector3.right,  Vector3.back };
+        Vector3[] directions = { Vector3.up, Vector3.left, Vector3.forward, Vector3.down, Vector3.right, Vector3.back };
 
         for (int i = 0; i < nbFaces; i++)
         {
@@ -72,7 +77,7 @@ public class WorldGenerator : MonoBehaviour
         }
         for (int i = 0; i < nbFaces; i++)
         {
-            
+
             terrainFaces[i].RegisterNeighbours();
         }
 
@@ -86,33 +91,78 @@ public class WorldGenerator : MonoBehaviour
         }
     }
 
-    void GenerateMesh()
+    void GenerateHeightMap()
     {
-       
-        foreach(PlanetFace face in terrainFaces)
+        foreach (PlanetFace face in terrainFaces)
         {
-            if (!displayNoiseMap)
-            {
-                face.ConstructAllMeshes();
-            }
-            else
-            {
+            face.ConstructAllHeightMap();
+        }
+    }
 
-                face.DisplayHeightMaps();
-            }
+    void DrawWorld()
+    {
+        foreach (PlanetFace face in terrainFaces)
+        {
+            face.DrawAllMap();
+        }
+    }
 
-            
+    void ComputeAllSphereVertexPos()
+    {
+
+        foreach (PlanetFace face in terrainFaces)
+        {
+            face.ComputeAllSphereVertexPos();
+        }
+    }
+
+    void RegisterChunksNeighbours()
+    {
+        foreach (PlanetFace face in terrainFaces)
+        {
+            face.RegisterChunksNeighBours();
         }
     }
 
     void DeleteFaces()
     {
-        
+
         int nbChildren = this.transform.childCount;
         for (int i = 0; i < nbChildren; i++)
         {
             DestroyImmediate(this.transform.GetChild(0).gameObject);
         }
+    }
+
+    void OnValuesUpdated()
+    {
+        if (!Application.isPlaying)
+        {
+            if (terrainFaces != null)
+            {
+                UpdateTerrain();
+            }
+            
+        }
+    }
+
+    void OnValidate()
+    {
+        if (meshSettings != null)
+        {
+            meshSettings.OnValuesUpdated -= OnValuesUpdated;
+            meshSettings.OnValuesUpdated += OnValuesUpdated;
+        }
+        if (biomesSettings != null)
+        {
+            foreach (BiomeSettings biomeSettings in biomesSettings)
+            {
+                biomeSettings.heightMapSettings.OnValuesUpdated -= OnValuesUpdated;
+                biomeSettings.heightMapSettings.OnValuesUpdated += OnValuesUpdated;
+            }
+            
+        }
+
     }
 }
 

@@ -128,6 +128,34 @@ public static class MeshGenerator
         return (projectedPoint);
     }
     
+    public static Vector3[] ExtendedMeshVertexPosition(MeshSettings meshSettings, Vector3 localUp, Vector3 axisA, Vector3 axisB, Vector2 chunkCenter, float planetRadius, int chunksPerFaces, TerrainShape terrainShape)
+    {
+        int numVertsPerLine = meshSettings.numVertsPerLine;
+        Vector3[] VertexPos = new Vector3[numVertsPerLine*numVertsPerLine];
+
+        for (int y = 0; y < numVertsPerLine; y++)
+        {
+            for (int x = 0; x < numVertsPerLine; x++)
+            {
+                Vector2 percent = chunkCenter + new Vector2((float)x - 1 - (numVertsPerLine - 3f) / 2, (float)y - 1 - (numVertsPerLine - 3f) / 2) / ((numVertsPerLine - 3f) * chunksPerFaces);
+                
+                if (terrainShape == TerrainShape.cube)
+                {
+                    Vector3 pointOnUnitCube = localUp * (1) + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB;
+                    VertexPos[y * numVertsPerLine + x] = pointOnUnitCube;
+                }
+                else if (terrainShape == TerrainShape.sphere)
+                {
+                    Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB;
+                    VertexPos[y * numVertsPerLine + x] = pointOnUnitCube.normalized * planetRadius;
+
+                }
+            }
+        }
+
+        return VertexPos;
+
+    }
 }
 
 public class MeshData
